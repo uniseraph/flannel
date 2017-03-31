@@ -8,12 +8,11 @@ import (
 	"encoding/json"
 	"github.com/coreos/flannel/pkg/ip"
 	"net"
+	"errors"
 )
 type hardwareAddr net.HardwareAddr
 
 type VlanBackend struct {
-
-
 	extInterface *backend.ExternalInterface
 	subnetMgr  subnet.Manager
 }
@@ -36,15 +35,20 @@ func (b *VlanBackend) RegisterNetwork(ctx context.Context, network string, confi
 		VlanId  int
 		Gateway  string
 	}{
-		VlanId : 111 ,
+		VlanId : 0 ,
 	}
 
 
 	if len(config.Backend) > 0 {
 		if err := json.Unmarshal(config.Backend, &cfg); err != nil {
-			return nil, fmt.Errorf("error decoding VXLAN backend config: %v", err)
+			return nil, fmt.Errorf("error decoding VLAN backend config: %v", err)
 		}
 	}
+
+	if cfg.VlanId==0 {
+		return nil , errors.New("error set vlanid to 0")
+	}
+
 
 	devAttrs := vlanDeviceAttrs{
 		vlanId:       uint32(cfg.VlanId),
